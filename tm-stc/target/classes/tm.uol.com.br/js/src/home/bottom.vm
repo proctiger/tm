@@ -1,0 +1,202 @@
+  
+TM.currentBanner = function() {
+    var doc = document, 
+    banner = {}, 
+    scripts = doc.getElementsByTagName('script'), 
+    bannerBlock = scripts[scripts.length - 1].parentNode, 
+    bannerId = bannerBlock.id,
+    found = false,
+    pageBanners = TM.pageBanners, 
+    pageBannersLength = TM.pageBanners.length;
+    for (var i = 0; i < pageBannersLength; i++) {
+        banner = pageBanners[i]
+        if(bannerId == banner.id) {
+            banner.block = bannerBlock;
+            found = true;
+            break;
+        }
+    }
+    if(!found) {
+        return false;
+    }
+
+    if (doc.getElementById(bannerId + TM.suffix)) {
+        if(banner.width != 1) {
+            banner.area = doc.getElementById(bannerId + TM.suffix);
+        }
+    }
+    return banner;
+};
+
+TM.makeDeUri = function(banner) {
+    var url_base = 'http://bn.uol.com.br/js.ng/',
+    querystring = [], 
+    deConfig = TM.deConfig;
+    deConfig.size = banner.width + 'x' + banner.height;
+    deConfig.page = banner.pos;
+    var conntype = document.body;
+    if(conntype){
+        conntype.style.behavior = 'url(#default#clientCaps)';
+        conntype = conntype.connectionType == 'lan' ? 1 : 0;
+        deConfig.conntype = conntype || '0';
+    }
+    for(var key in deConfig) {
+        var paramValue = deConfig[key];
+        if(typeof paramValue == 'string' || typeof paramValue == 'number') {
+            querystring.push([key, paramValue].join('='));
+        }
+    }
+    return url_base + querystring.join("&") + "?";
+};
+
+TM.getPositionTop = function(area) {
+    var elem = area;
+    var pos = elem.offsetTop;
+    while(true){
+        if(!elem.offsetParent){
+            break;
+        }
+        elem = elem.offsetParent;
+        pos += elem.offsetTop;
+    }
+    return pos;
+};
+
+TM.getPositionLeft = function(area) {
+    var elem = area;
+    var pos = elem.offsetLeft;
+    while(true){
+        if(!elem.offsetParent){
+            break;
+        }
+        elem = elem.offsetParent;
+        pos += elem.offsetLeft;
+    }
+    return pos;
+};
+
+TM.position = function(banner) {
+    if (typeof banner == 'object' && banner.id && banner.width != 1) {
+        var area = banner.area, 
+        block = banner.block;
+        if (typeof area == 'object') {
+            var topPos = TM.getPositionTop(area);
+            var leftPos = TM.getPositionLeft(area);
+            block.style.position = 'absolute';
+            block.style.top = topPos + 'px';
+            block.style.left = leftPos + 'px';
+            if (area.parentNode.tagName.match(/body/i)) {
+                block.style.width = '5px';
+                block.style.height = '5px';
+                block.style.overflow = 'hidden';
+            }
+        }
+    }
+    return true;
+};
+
+TM.enableReposition = function() {
+    var minInterval = 100;
+    var brw = navigator.userAgent.toLowerCase();
+    if(brw && brw.match(/msie.(5|6|7)/)){
+        minInterval = 1000;
+    }
+    TM.checkInterval = TM.checkInterval || minInterval;
+    TM.addEvent("resize", window, TM.reposition);
+    setTimeout(TM.repositionLoop, TM.checkInterval);
+};
+
+TM.reposition = function() {
+    var displayedLength = TM.displayedBanners.length
+    for (var i = 0; i <= displayedLength; i++) {
+        TM.position(TM.displayedBanners[i]);
+    }
+};
+
+TM.repositionLoop = function() {
+    TM.reposition();
+    setTimeout(TM.repositionLoop, TM.checkInterval);
+};
+
+TM.addEvent = function(ev, elem, func) {
+    if (window.addEventListener) {
+        elem.addEventListener(ev, func, false);
+    } else {
+        if (window.attachEvent) {
+            elem.attachEvent("on" + ev, func);
+        }
+    }
+};
+
+TM.display = function() {
+
+    var banner = TM.currentBanner(), 
+    doc = document, 
+    action = banner.action;
+    if (!banner || typeof banner != 'object') {
+        return false;
+    }
+    TM.displayedBanners = TM.displayedBanners || [];
+    var displayedLength = TM.displayedBanners.length;
+    for (var i = 0; i < displayedLength; i++) {
+        if(banner.id && banner.id == TM.displayedBanners[i].id) {
+            TM.message('Banner [' + banner.id + '] já foi exibido anteriormente');
+            return false;
+        }
+    }
+    
+    if(banner.width == 1) {
+        if (!TM.allowPopup()) {
+            return false;
+        }
+        doc.cookie = TM.popupcfg + "=0";
+    }
+    
+    if (banner.id == 'banner-985x60-2' && !TM.allowCuttingEdge()) {
+        return false;
+    }
+        
+    if(TM.adServer == 'dfp' && !action) {
+        googletag.display(banner.id);
+        TM.dfpCalls = TM.dfpCalls || [];
+        TM.dfpCalls.push(banner);
+    } else { 
+        if(action && action.match(/^http(s)?:\/\/.+$/)) {
+            doc.write('<img src="' + action + '" alt="">');
+        } else {
+            var deUri = TM.makeDeUri(banner);
+            TM.deCalls = TM.deCalls || [];
+            deCallsLength = TM.deCalls.length;
+            for(var i = 0; i < deCallsLength; i++) {
+                if(deUri == TM.deCalls[i]) {
+                    TM.message('URL [' + deUri + '] já foi solicitada anteriormente ao AdServer');
+                    return false;
+                }
+            }
+            TM.deCalls.push(deUri);
+            doc.write('<script type="text/javascript" src="' + deUri + '"><\/script>');
+        }
+    }
+    
+    if(banner.area){
+        TM.position(banner);
+        if(!TM.repositionEnable) {
+            TM.repositionEnable = true;
+            TM.enableReposition();
+        }
+    }
+    
+    TM.displayedBanners.push(banner);
+    return true;
+};
+
+TM.init = function(adServer) {
+    TM.adServer = adServer;
+    TM.currHref = document.location.href;
+    TM.deConfig = TM.deConfig();
+    if (TM.adServer == 'dfp') {
+        TM.dfpSetup();
+    }
+};
+
+TM.init(adServer);

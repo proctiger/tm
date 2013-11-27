@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Behavioral Track - UOL Tag Manager</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="SHORTCUT ICON" href="http://home.img.uol.com.br/favicon.ico" />
+    </head>
+    <body>
+        <script type="text/javascript">
+            var TM = TM || {};
+            
+            TM.getQueryString = function(parameterName) {
+                var location = new String(window.location);
+                var query_string = location.split('?')[1];
+                if (parameterName) {
+                    if (query_string) {
+                        var vars = query_string.split('&');
+                        for (var i=0; i < vars.length; i++) {
+                            var key = new String(vars[i].split('=')[0]);
+                            if (key == parameterName) {
+                                return (vars[i].split('=')[1]).toString().split("#")[0];
+                            }
+                        }
+                        return false;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+            
+            TM.Cookie = {
+                'name' : TM.getQueryString('name') || 'BT',
+                'value' : TM.getQueryString('value'),
+                'path' : TM.getQueryString('path') || '/',
+                'domain' : TM.getQueryString('domain') || 'uol.com.br',
+                'maxage' : TM.getQueryString('maxage') || 10
+            };
+                        
+            TM.Cookie.setCookie = function() {
+                if(!TM.Cookie.name) {
+                    console.log('[UOL Tag Manager] WARN: Nome do cookie não definido');
+                    return false;
+                }
+                
+                if(!TM.Cookie.value) {
+                    console.log('[UOL Tag Manager] WARN: Valor do cookie não definido');
+                    return false;
+                }
+                
+                var expires = new Date();
+                expires.setDate(expires.getDate() + TM.Cookie.maxage);
+                    
+                var cookie = TM.Cookie.name;
+                cookie += '=' + TM.Cookie.value;
+                cookie += ';Domain=' + TM.Cookie.domain;
+                cookie += ';Path=' + TM.Cookie.path;
+                cookie += ";Expires=" + expires.toUTCString();
+                    
+                document.cookie = cookie;
+            }
+            
+            TM.Cookie.setCookie();
+        </script>
+    </body>
+</html>

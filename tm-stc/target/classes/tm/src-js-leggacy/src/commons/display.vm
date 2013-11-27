@@ -1,0 +1,61 @@
+TM.display = function() {
+        
+    var doc = document, 
+    banner = TM.currentBanner();
+    if (!banner || typeof banner != 'object') {
+        return false;
+    } 
+
+    TM.displayedBanners = TM.displayedBanners || [];
+    var displayedLength = TM.displayedBanners.length;
+    for (var i = 0; i < displayedLength; i++) {
+        if(banner.id && banner.id == TM.displayedBanners[i].id) {
+            TM.message('Banner [' + banner.id + '] já foi exibido anteriormente');
+            return false;
+        }
+    }
+
+    if(banner.size == '1x1') {
+        if (!TM.isPopupEnable()) {
+            return false;
+        }
+        doc.cookie = TM.popupcfg + "=0";
+    }
+    
+    if(TM.adServer == 'dfp' && !banner.action && !banner.rotate) {
+        googletag.display(banner.id);
+        TM.dfpCalls = TM.dfpCalls || [];
+        TM.dfpCalls.push(banner);
+    } else { 
+        if(banner.action && banner.action.match(/^http(s)?:\/\/.+$/)) {
+            doc.write('<img src="' + banner.action + '" alt="banner-image" />');
+        } else if(banner.action && banner.action == 'hide') { 
+            TM.hideBanner(banner);
+        } else if(banner.rotate) {
+            #parse("./iframerotativo.vm")
+        } else {
+            TM.deCalls = TM.deCalls || [];
+            var deUri = TM.makeDeUri(banner), 
+            deCallsLength = TM.deCalls.length;
+            for(var j = 0; j < deCallsLength; j++) {
+                if(deUri == TM.deCalls[j]) {
+                    TM.message('URL [' + deUri + '] já foi solicitada anteriormente ao AdServer');
+                    return false;
+                }
+            }
+            TM.deCalls.push(deUri);
+            doc.write('<script type="text/javascript" src="' + deUri + '"><\/script>');
+        }
+    }
+    
+    if(banner.area){
+        TM.position(banner);
+        if(!TM.repositionEnable) {
+            TM.repositionEnable = true;
+            TM.enableReposition();
+        }
+    }
+    
+    TM.displayedBanners.push(banner);
+    return true;
+};

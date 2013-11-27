@@ -1,0 +1,27 @@
+#set($tmp = $fileListToInclude.add("./src-js-leggacy/src/dfp/gpt.js"))
+
+#if($scriptPath.indexOf("./uol/homeuol.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/home.js"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/home/top.vm"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/home/uol.vm"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/home/bottom.vm"))
+
+#else
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/default.js"))
+    #if($scriptPath.indexOf("shopping") != "-1")
+        #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/map/par.js"))
+        #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/par.js"))
+        #set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-par.vm"))
+        #set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-full.vm"))
+    #else
+        #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/map/uol.js"))
+        #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/uol.js"))
+        #set($tmp = $fileListToParse.add("./src-js-leggacy/src/commons.vm"))
+        #if ($scriptPath.indexOf("mulher.js") != "-1")
+            #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/cliques/uol.js"))
+            #set($tmp = $fileListToInclude.add("./src-js-leggacy/src/cliques/adrequisitor.js"))
+        #end
+        #set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-full.vm"))
+    #end
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/init.vm"))
+#end

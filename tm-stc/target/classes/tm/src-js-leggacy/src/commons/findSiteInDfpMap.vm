@@ -1,0 +1,20 @@
+
+TM.findSiteInDfpMap = function() {
+    if(!TM.Config.dfpSite){
+        var siteFound     = false;
+        var siteMapLength = TM.dfpSiteMap.length;
+        for(var i = 0; i < siteMapLength; i++) {
+            var siteMap = TM.dfpSiteMap[i];
+            if(TM.Config.site == siteMap.deSite) {
+                TM.Config.dfpSite = siteMap.dfpSite;
+                siteFound = true;
+                break;
+            }
+        }
+        if(!siteFound) {
+            TM.message('Atributo [TM.Config.site]' + TM.Config.site + ' não é valido');
+            return false;
+        }
+    }
+    return true;
+};

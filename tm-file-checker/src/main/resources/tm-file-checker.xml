@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:task="http://www.springframework.org/schema/task"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+                       http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                       http://www.springframework.org/schema/context
+                       http://www.springframework.org/schema/context/spring-context-3.0.xsd
+                       http://www.springframework.org/schema/util
+                       http://www.springframework.org/schema/util/spring-util-3.0.xsd
+                       http://www.springframework.org/schema/tx
+                       http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+                       http://www.springframework.org/schema/task
+                       http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+    <bean id="VERSION" class="java.lang.String">
+       <constructor-arg value="${project.version}"/>
+    </bean>
+
+    <bean class="uol.ecommerce.commons.spring.configurer.UdkEncodedPropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:tm-file-checker.properties" />
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+    </bean>
+
+    <task:annotation-driven executor="executor" scheduler="scheduler"/>
+    <task:executor id="executor" pool-size="3"/>
+    <task:scheduler id="scheduler" pool-size="3"/>
+    
+    <task:scheduled-tasks scheduler="scheduler">
+        <task:scheduled ref="fileChecker" method="check" fixed-rate="60000"/>
+    </task:scheduled-tasks>
+
+    <bean id="remoteConfig" class="reconf.spring.RepositoryConfigurationBean">
+        <property name="configInterface" value="uol.tm.filechecker.config.RemoteConfig"/>
+    </bean>
+    
+    <bean id="fileChecker" class="uol.tm.filechecker.job.FileChecker">
+        <constructor-arg name="remoteConfig" ref="remoteConfig"/>
+        <constructor-arg name="svnLogin" value="${filechecker.svn.login}"/>
+        <constructor-arg name="svnPassword" value="${filechecker.svn.password}"/>
+    </bean>
+    
+    <bean id="probeRepository" class="uol.tm.filechecker.probe.ProbeRepository">
+        <constructor-arg name="remoteConfig" ref="remoteConfig"/>
+        <constructor-arg name="svnLogin" value="${filechecker.svn.login}"/>
+        <constructor-arg name="svnPassword" value="${filechecker.svn.password}"/>
+    </bean>
+    
+    <bean id="probeService" class="uol.tm.filechecker.probe.ProbeService">
+        <constructor-arg name="probeRepository" ref="probeRepository"/>
+    </bean>
+    
+    <bean class="uol.tm.filechecker.job.Main" lazy-init="false" destroy-method="close">
+        <constructor-arg name="fileChecker" ref="fileChecker"/>
+        <constructor-arg name="probeService" ref="probeService"/>
+        <constructor-arg name="port" value="${filechecker.service.port}"/>
+    </bean>
+    
+</beans>

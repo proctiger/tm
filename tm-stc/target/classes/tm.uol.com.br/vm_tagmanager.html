@@ -1,0 +1,15 @@
+#!vm;utf-8
+$response.setHeader("Cache-Control", "max-age=600")
+
+#set( $originalPath = "." + $request.getParameter( "ORIGINAL_PATH" ) )
+
+#if ( $originalPath.indexOf("./retargeting.html") != "-1")
+    #include( "./html/retargeting.html" )
+
+#elseif ( $originalPath.indexOf("./cookie/") != "-1")
+    #if ( $originalPath.indexOf("./cookie/bt-track.html") != "-1")
+        #include( "./html/bt-track.html" )
+    #else
+        #include( "./html/set-cookie.html" )
+    #end
+#end

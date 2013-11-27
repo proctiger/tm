@@ -1,0 +1,294 @@
+
+TM.validateConfig = function() {
+    var config = TM.Config;
+    if (!config) {
+        TM.message('Objeto de configuração [TM.Config] não foi encontrado');
+        return false;
+    }
+    if (!config.site) {
+        TM.message('Atributo [TM.Config.site] não foi encontrado');
+        return false;
+    }
+
+    if(!TM.findSiteInDfpMap()){
+        return false;
+    }
+
+    TM.findChanInDfpMap();
+    TM.findSubchanInDfpMap();
+    TM.findAffiliateInDfpMap();
+    
+    if (config.site == 'par' && !config.affiliate) {
+        TM.message('Atributo [TM.Config.affiliate] é obrigatório para parceiros e não foi encontrado');
+        return false;
+    }
+
+    if (config.site == "par" && TM.affiliateMap) {
+        var affiliateLength = TM.affiliateMap.length, 
+        isAffiliate = false;
+        for (var i = 0; i < affiliateLength; i++) {
+            if (config.affiliate == TM.affiliateMap[i].deAffiliate) {
+                isAffiliate = true;
+                break
+            };
+        };
+        if (!isAffiliate) {
+            TM.message("affiliate " + config.affiliate + " não está cadastrado no Tag Manager");
+            return false;
+        }
+    }
+
+    if (!config.banners || config.banners.length < 1) {
+        TM.message("Atributo [TM.Config.banners] não foi encontrado");
+        return false;
+    }
+
+    return true;
+};
+
+#parse("./commons/findChanAndSubchan.vm")
+
+TM.findAffiliateInDfpMap = function () {
+    var config = TM.Config;
+    if(config.affiliate && TM.affiliateMap) {
+        var affiliateFound = false, 
+        affiliateMapLength = TM.affiliateMap.length;
+        for(var i = 0; i < affiliateMapLength; i++) {
+            var affiliateMap = TM.affiliateMap[i];
+            if(config.affiliate.match(affiliateMap.deAffiliate)) {
+                config.dfpAffiliate = affiliateMap.dfpAffiliate;
+                affiliateFound = true;
+                break;
+            }
+        }
+        if(!affiliateFound) {
+            TM.message('Atributo [TM.Config.affiliate] não é valido e será desconsiderado');
+        }
+    }
+};
+
+TM.setupPageBanners = function() {
+    var pageBanners = [], 
+        configBannersLength = TM.Config.banners.length;
+    if (TM.currHref.match(/tm=1/)) {
+        m = 'Banners disponíveis: '
+    }
+    for(var i = 0; i < configBannersLength; i++) {
+        var found = false, 
+            configBannerId = TM.Config.banners[i], 
+            banner = {};
+        if(TM.urlConfBanners) {
+            var TMurlConfBannersLength = TM.urlConfBanners.length;
+            for (var j = 0; j < TMurlConfBannersLength; j++) {
+                var urlConf = TM.urlConfBanners[j], 
+                    keyword = (typeof TM.Config.keyword == 'object') ? ',' + TM.Config.keyword.join(',') + ',' : ',' + TM.Config.keyword + ',';
+                if (urlConf.keyword && keyword.match(urlConf.keyword)) {
+                    var urlConfBannersLength = urlConf.banners.length;
+                    for(var k = 0; k < urlConfBannersLength; k++) {
+                        var urlBanner = urlConf.banners[k];
+                        if(urlBanner.id && urlBanner.id == configBannerId) {
+                            banner = urlBanner;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (urlConf.re && TM.currHref.match(urlConf.re) && !found) {
+                    if(urlConf.action && urlConf.action.toLowerCase() == 'de'){
+                        TM.adServer = 'de';
+                    }
+                    var urlConfBannersLength = urlConf.banners.length;
+                    for(var k = 0; k < urlConfBannersLength; k++) {
+                        var urlBanner = urlConf.banners[k];
+                        if(urlBanner.id && urlBanner.id == configBannerId) {
+                            banner = urlBanner;
+                            found = true;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        if(!found) {
+            var defaultBannersLength = TM.defaultBanners.length;
+            for(var l = 0; l < defaultBannersLength; l++) {
+                var defaultBanner = TM.defaultBanners[l];
+                if(defaultBanner.id && defaultBanner.id == configBannerId) {
+                    banner = defaultBanner;
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if(!found){
+            TM.message('Banner com id [' + configBannerId + '] não permitido pelo sistema');
+            continue;
+        }
+        TM.log.banners.available.push(banner.id);
+        if (TM.currHref.match(/tm=1/)) {
+            m += ('"' + banner.id + '"');
+            m += (i < (configBannersLength - 1)) ? ', ' : '';
+        }
+        pageBanners.push(banner);
+    }
+    if (TM.currHref.match(/tm=1/)) {
+        TM.message(m, 'LOG');
+    }
+    return pageBanners;
+};
+
+TM.isPopupEnable = function() {
+
+    var popupCookieName = TM.Config.site;
+
+    if (TM.Config.floater) {
+        return true;
+    };
+
+    if (TM.Config.chan) {
+        popupCookieName += '_' + TM.Config.chan;
+    }
+
+    if (TM.Config.subchan) {
+        popupCookieName += '_' + TM.Config.subchan;
+    }
+
+    TM.popupcfg = popupCookieName;
+
+    if (document.cookie.indexOf(popupCookieName) != -1) {
+        return false;
+    }
+
+    return true;
+};
+
+TM.dfpSetup = function() {
+    var dfpSetup = '/8804', 
+        goog = googletag,
+        pubads = goog.pubads, 
+        config = TM.Config;
+    if(config.dfpSite) {
+        if (config.site != "folha" || config.site != "folclassificados" || config.site != "mf") {
+            if ((config.dfpChan == "shopping" && !TM.currHref.match(/^http(s)?:\/\/(www.)?shopping((-)?[0-9]*)?.uol.com.br(\/.*)?$/)) || (config.dfpChan == "todaoferta" && !TM.currHref.match(/^http(s)?:\/\/(www.)?todaoferta.uol.com.br(\/.*)?$/))) {
+                config.dfpSite = config.dfpAffiliate;
+            }
+            dfpSetup += '/' + config.dfpSite;
+        }
+        if(config.dfpSite == 'parceiros' && config.affiliate) {
+            if(!config.affiliate == 'parshopping'){
+                var dfpAff = config.affiliate.indexOf('par') == 0 ? config.affiliate.substring(3) : config.affiliate;
+                dfpSetup += '/' + dfpAff;
+            } else {
+                if(config.dfpAffiliate && config.chan != 'catapreco') {
+                    dfpSetup += '/' + config.dfpAffiliate;
+                }
+            }
+        }
+    }
+    if(config.dfpChan && config.dfpChan != config.dfpAffiliate) {
+        dfpSetup += '/' + config.dfpChan;
+    }
+    if(config.dfpSubchan) {
+        dfpSetup += '/' + config.dfpSubchan;
+    }
+    if (!config.dfpChan && !config.dfpSubhan && (config.site == "folha" || config.site == "folclassificados")) {
+        dfpSetup += '/folha';
+    }
+    TM.log.dfp = dfpSetup;
+    var pageBannersLength = TM.pageBanners.length;
+    for (var i = 0; i < pageBannersLength; i++) {
+        var banner = TM.pageBanners[i];
+        if (banner && !banner.action && !banner.rotate) {
+            if (banner.width != 1 || banner.height != 1 || TM.isPopupEnable()){
+                if(config.chan == "radiouol" && banner.id == "banner-588x414"){
+                    dfpSetup = "/8804/uol/radio_uol/588x414";
+                } else {
+                    if(dfpSetup.indexOf("/588x414") != -1){
+                        dfpSetup = dfpSetup.slice(1, dfpSetup.indexOf("/588x414"));
+                    }
+                }
+                if(banner.id && banner.id.match(/companion/i)){
+                    pubads = goog.companionAds;
+                }
+                if (banner.dfpPos) {
+                    goog.defineSlot(dfpSetup, [banner.width, banner.height], banner.id).addService(pubads()).setTargeting("pos", banner.dfpPos);
+                } else {
+                    goog.defineSlot(dfpSetup, [banner.width, banner.height], banner.id).addService(pubads());
+                }
+                pubads = goog.pubads;
+            }
+        }
+    }
+    pubads().setTargeting("referer", TM.currHref);
+    if(config.group && config.group != '') {
+        pubads().setTargeting("group", config.group.toString());
+    }
+    if(config.keyword && config.keyword != '') {
+        pubads().setTargeting("keyword", config.keyword);
+    }
+    if (config.dfpSite ==  "uol" || config.dfpSite == "uol_mobile" || config.dfpSite == "bol" || config.dfpSite == "bol_mobile"){
+        config.campaignuol = '1';
+    }
+    if(config.campaignuol && config.campaignuol != '') {
+        pubads().setTargeting("campaignuol", config.campaignuol.toString());
+    }
+    
+    #parse("./commons/bt.vm")
+    
+    pubads().enableSyncRendering();
+    pubads().enableSingleRequest();
+    goog.enableServices();
+};
+
+#parse("./commons/deSetup.vm")
+
+TM.currentBanner = function() {
+    var banner = {}, 
+        doc = document, 
+        config = TM.Config, 
+        tmAds = TM.getElementsByClassName('tm-ads'), 
+        bannerBlock = tmAds[tmAds.length -1], 
+        bannerId = bannerBlock.id, 
+        bannerClass = bannerBlock.className, 
+        found = false;
+    if (!bannerClass.match(/tm-ads/)) {
+        TM.message('Banner [' + bannerId + '] não possui a classe [tm-ads]');
+        return false;
+    }
+    if(TM.pageBanners) {
+        var pageBannersLength = TM.pageBanners.length;
+        for (var i = 0; i < pageBannersLength; i++) {
+            var pageBanner = TM.pageBanners[i];
+            if (bannerId == pageBanner.id) {
+                banner = pageBanner;
+                banner.block = bannerBlock;
+                banner.size = banner.width + 'x' + banner.height;
+                banner.content = false;
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if(!found) {
+        TM.message('Banner [' + bannerId + '] não foi configurado ou não é permitido');
+        return false;
+    }
+
+    var bannerAreaSuffix = TM.Config.suffix || '-area';
+    if (document.getElementById(banner.id + bannerAreaSuffix)) {
+        if(banner.size != '1x1') {
+            banner.area = document.getElementById(bannerId + bannerAreaSuffix);
+            banner.relativePos = TM.hasRelativeParent(banner);
+        }
+    }
+    TM.log.banners.calls.push(banner.id);
+    return banner;
+};
+
+#parse("./commons/position.vm")
+
+#parse("./commons/tmLog.vm")

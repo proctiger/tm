@@ -1,0 +1,7 @@
+#set($tmp = $fileListToInclude.add("./src-js-leggacy/src/dfp/gpt.js"))
+#set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/default.js"))
+#set($tmp = $fileListToInclude.add("./src-js-leggacy/config/map/uol.js"))
+#set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/pd.js"))
+#set($tmp = $fileListToParse.add("./src-js-leggacy/src/commons.vm"))
+#set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-full.vm"))
+#set($tmp = $fileListToParse.add("./src-js-leggacy/src/init.vm"))

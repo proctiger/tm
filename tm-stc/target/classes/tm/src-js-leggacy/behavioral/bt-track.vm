@@ -1,0 +1,22 @@
+
+if(!window.TM_BT_ENABLE){
+    TM_BT_ENABLE = true;
+
+    TM.btTrack = function() {
+        var scriptTag = document.createElement('script');
+        scriptTag.type='text/javascript'; 
+        scriptTag.defer=true;
+        scriptTag.src = document.location.protocol == 'https' ? '//tracker.bt.uol.com.br/track' : '//tracker.bt.uol.com.br/partner';
+        document.body.appendChild(scriptTag);
+    }
+
+    TM.trackPageWhenPageLoad = function(){
+        if(document.readyState && document.readyState == 'complete') {
+            TM.btTrack();
+        } else {
+            setTimeout(TM.trackPageWhenPageLoad, 1000);
+        }
+    }
+
+    TM.trackPageWhenPageLoad();
+}

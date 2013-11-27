@@ -1,0 +1,74 @@
+
+var DFPhtml = '', 
+                div = '', 
+                arr = '', 
+                size = banner.rotate.size, 
+                interval = banner.rotate.interval || 3000;
+            var ifrm = document.createElement('iframe');
+            ifrm.id = 'tm-patrocinio';
+            ifrm.style.width = banner.width + 'px';
+            ifrm.style.height = banner.height + 'px';
+            ifrm.style.border = '0px';
+            ifrm.setAttribute('width', '0');
+            ifrm.setAttribute('height', '0');
+            ifrm.setAttribute('marginwidth', '0');
+            ifrm.setAttribute('marginheight', '0');
+            ifrm.setAttribute('frameborder', '0');
+            ifrm.setAttribute('scrolling', 'no');
+            banner.block.appendChild(ifrm);
+            var DFPhtml = '';
+            DFPhtml += "<html><head>";
+            DFPhtml += "<scr"+"ipt type='text\/javascript'>";
+            DFPhtml += "  var googletag = googletag || {};";
+            DFPhtml += "  googletag.cmd = googletag.cmd || [];";
+            DFPhtml += "  (function() {";
+            DFPhtml += "    var gads = document.createElement('script');";
+            DFPhtml += "    gads.async = true;";
+            DFPhtml += "    gads.type = 'text\/javascript';";
+            DFPhtml += "    var useSSL = 'https:' == document.location.protocol;";
+            DFPhtml += "    gads.src = (useSSL ? 'https:' : 'http:') + '//www.googletagservices.com/tag/js/gpt.js';";
+            DFPhtml += "    var node =document.getElementsByTagName('script')[0];";
+            DFPhtml += "    node.parentNode.insertBefore(gads, node);";
+            DFPhtml += "   })();";
+            DFPhtml += "<\/scr"+"ipt>";
+            DFPhtml += "<scri"+"pt>";
+            DFPhtml += "  googletag.cmd.push(function() {";
+            for (var i = 1; i<= size; i++) {
+                var id = banner.id + '-rotate-' + i;
+                DFPhtml += "googletag.defineSlot('" + TM.log.dfp + "', [" + banner.width + ", " + banner.height + "],  '"+id+"').addService(googletag.pubads()).setTargeting('pos', 'rotativo-" + i + "');";
+                div +=  "<div id='" + id + "' style='width: " + banner.width + "px;height: " + banner.height + "px;display: none;'><scr"+"ipt type='text\/javascript'>googletag.cmd.push(function() {googletag.display('" + id + "');});<\/scr"+"ipt></div>";
+                arr +=  "'" + id + "',";
+            }
+            DFPhtml += "    googletag.pubads().enableSingleRequest();";
+            DFPhtml += "    googletag.enableServices();";
+            DFPhtml += "  });";
+            DFPhtml += "<\/scr"+"ipt>";
+            DFPhtml += "<\/head>";
+            DFPhtml += "<body leftmargin='0' topmargin='0' marginwidth='0' marginheight='0'>";
+            DFPhtml += div;
+            DFPhtml += "<script type='text/javascript'>";
+            DFPhtml += "var DEaIMGsponsor = new Array();    \n";
+            DFPhtml += "DEaIMGsponsor = [";
+            DFPhtml += arr;
+            DFPhtml += "                                 ];\n";
+            DFPhtml += "";
+            DFPhtml += "function DERotateImages" + banner.width + "x" + banner.height + "(i){\n";
+            DFPhtml += "      if(i>=DEaIMGsponsor.length)\n";
+            DFPhtml += "          i=0;\n";
+            DFPhtml += "            document.getElementById(DEaIMGsponsor[i]).style.display = 'block';\n";
+            DFPhtml += "            if(i-1 >= 0){\n";
+            DFPhtml += "                    document.getElementById(DEaIMGsponsor[i-1]).style.display = 'none';\n";
+            DFPhtml += "            }\n";
+            DFPhtml += "            if(i == 0){\n";
+            DFPhtml += "                document.getElementById(DEaIMGsponsor[DEaIMGsponsor.length -1]).style.display = 'none';\n";
+            DFPhtml += "            }\n";
+            DFPhtml += "            window.setTimeout('DERotateImages" + banner.width + "x" + banner.height + "(' + (i+1) + ')'," + interval + ");\n";
+            DFPhtml += "}\n";
+            DFPhtml += "DERotateImages" + banner.width + "x" + banner.height + "(0);\n";
+            DFPhtml += "<\/scr"+"ipt>";
+            DFPhtml += "<\/body><\/html>";
+            doc.open();
+            ifrm.contentWindow.document.write(DFPhtml);
+            ifrm.contentWindow.document.close();
+            TM.log.banners.rotativos = TM.log.banners.rotativos || [];
+            

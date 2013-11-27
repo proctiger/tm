@@ -1,0 +1,52 @@
+
+TM.keepCapa = function (config) {
+    if (config.site == 'uolbr'){
+        var capa = TM.capa, 
+            capaLength = capa.length, 
+            keep = false;
+        for (var j = 0; j < capaLength; j++) {
+            if (TM.currHref.match(capa[j].re)){
+                config.subchan = 'capa';
+                keep = true;
+            }
+        };
+        return keep;
+    }
+};
+
+TM.findChanInDfpMap = function() {
+    if(TM.Config.chan) {
+        var chanFound = false, 
+            chanMapLength = TM.dfpChanMap.length;
+        for(var i = 0; i < chanMapLength; i++) {
+            var chanMap = TM.dfpChanMap[i];
+            if(TM.Config.chan == chanMap.deChan) {
+                TM.Config.dfpChan = chanMap.dfpChan;
+                chanFound = true;
+                break;
+            }
+        }
+        if(!chanFound) {
+            TM.message('Atributo [TM.Config.chan]' + TM.Config.chan + ' não é valido e será desconsiderado');
+        }
+    }
+};
+
+TM.findSubchanInDfpMap = function() {
+    var config = TM.Config;
+    if(config.subchan) {
+        var subchanFound = false, 
+            subchanMapLength = TM.dfpSubchanMap.length;
+        for(var i = 0; i < subchanMapLength; i++) {
+            var subchanMap = TM.dfpSubchanMap[i];
+            if(config.subchan.match(subchanMap.deSubchan)) {
+                config.dfpSubchan = subchanMap.dfpSubchan;
+                subchanFound = true;
+                break;
+            }
+        }
+        if(!subchanFound) {
+            TM.message('Atributo [TM.Config.subchan] não é valido e será desconsiderado');
+        }
+    }
+};

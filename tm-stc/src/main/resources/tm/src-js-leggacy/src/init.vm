@@ -1,0 +1,28 @@
+
+TM.init = function(adServer) {
+    TM.currHref = document.location.href;
+    TM.initAfter();
+    if(!TM.validateConfig() || TM.isBannedSite()){
+        TM.display = function () {};
+        return false;
+    }
+    TM.adServer = adServer;
+    TM.pageBanners = TM.setupPageBanners();
+    TM.deConfig = TM.deSetup();
+    if (TM.adServer == 'dfp') {
+        TM.dfpSetup();
+    }
+};
+
+TM.initAfter = function() {
+    if(document.readyState && document.readyState == 'complete') {
+        if (TM.RETARGETING) { TM.RETARGETING.init(); }
+        if (TM.BT) { TM.BT.init(); }
+        if (TM.SIGA) { TM.SIGA.init(); }
+        setTimeout(TM.initLog, 3000);
+    } else {
+        setTimeout(TM.initAfter, 500);
+    }
+}
+
+TM.init('dfp');

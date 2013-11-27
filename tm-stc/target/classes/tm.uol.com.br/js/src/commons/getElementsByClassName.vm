@@ -1,0 +1,18 @@
+TM.getElementsByClassName = function (classname){
+    var doc = document;
+        nodesArr = false;
+    if(document.getElementsByClassName){
+        var nodesArr = doc.getElementsByClassName(classname);
+    } else {
+        var nodesArr = [], 
+            re = new RegExp('(^| )'+classname+'( |$)'), 
+            elements = doc.getElementsByTagName("*");
+            elementsLength = elements.length;
+        for (var i = 0; i < elementsLength; i++) {
+            if(re.test(elements[i].className)){
+                nodesArr.push(elements[i]);
+            }
+        }
+    }
+    return nodesArr;
+};

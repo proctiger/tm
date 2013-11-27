@@ -1,0 +1,23 @@
+#if($scriptPath.indexOf("./b/") == "-1")
+    #set($tmp = $fileListToInclude.add("./modules/commons/header.js"))
+    #set($tmp = $fileListToInclude.add("./modules/commons/utils.js"))
+
+    #if($scriptPath.indexOf("./uol/") != "-1")
+        #parse("./include/uol.vm");
+
+    #elseif($scriptPath.indexOf("./pd/") != "-1")
+        #parse("./include/pd.vm");
+
+    #elseif($scriptPath.indexOf("./par/") != "-1")
+        #parse("./include/par.vm");
+
+    #elseif($scriptPath.indexOf("./aff/") != "-1")
+        #parse("./include/aff.vm");
+        
+    #elseif($scriptPath.indexOf("./test/") != "-1")
+        #parse("./include/test.vm");
+
+    #end
+    
+    #set($tmp = $fileListToInclude.add("./modules/commons/init.js"))
+#end

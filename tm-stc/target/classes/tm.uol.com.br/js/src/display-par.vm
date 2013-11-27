@@ -1,0 +1,472 @@
+
+TM.log = {}, 
+TM.log.banners = {}, 
+TM.log.banners.available = [], 
+TM.log.banners.calls = [];
+
+#parse("./commons/getElementsByClassName.vm")
+
+#parse("./commons/messages.vm")
+
+#parse("./commons/findSiteInDfpMap.vm")
+
+TM.makeDeUri = function(banner) {
+    var url_base = 'http://bn.uol.com.br/js.ng/', 
+        querystring = [];
+    TM.deConfig.size = banner.size;
+    TM.deConfig.page = banner.pos;
+    TM.deConfig.cmpng = banner.campaign || TM.deConfig.cmpng;
+    TM.deConfig.affiliate = banner.affiliate || TM.deConfig.affiliate;
+    for(var key in TM.deConfig) {
+        var paramValue = TM.deConfig[key];
+        if (paramValue) {
+            if(typeof paramValue == 'string' || typeof paramValue == 'number') {
+                querystring.push([key, paramValue].join('='));
+            } else if(paramValue.constructor === Array) {
+                var paramLength = paramValue.length;
+                for(var i = 0; i < paramLength; i++) {
+                    if((typeof paramValue[i] == 'string' || typeof paramValue[i] == 'number') &&  TM.stringTrim(paramValue[i]) != '') {
+                        querystring.push([key, paramValue[i]].join('='));
+                    }
+                }
+            }
+        }
+    }  
+    return url_base + querystring.join("&") + "?";
+};
+
+TM.stringTrim = function(obj){
+    if(typeof obj == 'string') {
+        return obj.replace(/^\s+|\s+$/g,'');
+    }
+    return obj;
+};
+
+TM.display = function() {
+
+    var doc = document, 
+        banner = TM.currentBanner();
+    if (!banner || typeof banner != 'object') {
+        return false;
+    }
+
+    TM.displayedBanners = TM.displayedBanners || [];
+    var displayedLength = TM.displayedBanners.length;
+    for (var i = 0; i < displayedLength; i++) {
+        if(banner.id && banner.id == TM.displayedBanners[i].id) {
+            TM.message('Banner [' + banner.id + '] já foi exibido anteriormente');
+            return false;
+        }
+    }
+
+    if(banner.size == '1x1') {
+        if (!TM.isPopupEnable()) {
+            return false;
+        }
+        doc.cookie = TM.popupcfg + "=0";
+    }
+    TM.adServer = TM.getCookie("TM", doc.cookie) || adServer;
+    if(TM.adServer == 'dfp' && !banner.action) {
+        googletag.display(banner.id);
+        TM.dfpCalls = TM.dfpCalls || [];
+        TM.dfpCalls.push(banner);
+    } else { 
+        if(banner.action && banner.action.match(/^http(s)?:\/\/.+$/)) {
+            doc.write('<img src="' + banner.action + '" alt="banner-image" />');
+        } else if(banner.action && banner.action == 'hide') {
+            TM.hideBanner(banner);
+        } else {
+            TM.deCalls = TM.deCalls || [];
+            var deUri = TM.makeDeUri(banner), 
+                deCallsLength = TM.deCalls.length;
+            for(var j = 0; j < deCallsLength; j++) {
+                if(deUri == TM.deCalls[j]) {
+                    TM.message('URL [' + deUri + '] já foi solicitada anteriormente ao AdServer');
+                    return false;
+                }
+            }
+            TM.deCalls.push(deUri);
+            doc.write('<script type="text/javascript" src="' + deUri + '"><\/script>');
+        }
+    }
+
+    if(banner.area){
+        TM.position(banner);
+        if(!TM.repositionEnable) {
+            TM.repositionEnable = true;
+            TM.enableReposition();
+        }
+    }
+
+    TM.displayedBanners.push(banner);
+    return true;
+};
+
+TM.validateConfig = function() {
+    var config = TM.Config;
+    if (!config) {
+        TM.message('Objeto de configuração [TM.Config] não foi encontrado');
+        return false;
+    }
+    if (!config.site) {
+        TM.message('Atributo [TM.Config.site] não foi encontrado');
+        return false;
+    }
+
+    if(!TM.findSiteInDfpMap()){
+        return false;
+    }
+
+    TM.findChanInDfpMap();
+    TM.findSubchanInDfpMap();
+
+    if (config.site == 'par' && !config.affiliate) {
+        TM.message('Atributo [TM.Config.affiliate] é obrigatório para parceiros e não foi encontrado');
+        return false;
+    }
+
+    if (config.site == "par" && TM.affiliateMap) {
+        TM.findAffiliateInDfpMap();
+    }
+
+    if (!config.banners || config.banners.length < 1) {
+        TM.message("Atributo [TM.Config.banners] não foi encontrado");
+        return false;
+    }
+
+    return true;
+};
+
+#parse("./commons/findChanAndSubchan.vm")
+
+TM.findAffiliateInDfpMap = function () {
+    var config = TM.Config;
+    if(typeof config.affiliate != "object"){
+        if(config.affiliate && TM.affiliateMap) {
+            var affiliateFound = false, 
+                affiliateMapLength = TM.affiliateMap.length;
+            for(var i = 0; i < affiliateMapLength; i++) {
+                var affiliateMap = TM.affiliateMap[i];
+                if(config.affiliate.match(affiliateMap.deAffiliate)) {
+                    config.dfpAffiliate = affiliateMap.dfpAffiliate;
+                    affiliateFound = true;
+                    break;
+                }
+            }
+        }
+    } else {
+        var affiliate = config.affiliate;
+        if(!TM.Config.banners){
+            var banners = [];
+        }
+        var affiliateFound = false;
+        for(var i in affiliate){
+            var affiliateMapLength = TM.affiliateMap.length;
+            for(var j = 0; j < affiliateMapLength; j++) {
+                var affiliateMap = TM.affiliateMap[j];
+                if(i.match(affiliateMap.deAffiliate)) {
+                    if (banners) {
+                        banners.push(affiliate[i]);
+                    }
+                    config.dfpAffiliate = affiliateMap.dfpAffiliate;
+                    affiliateFound = true;
+                    break;
+                }
+            }
+        }
+        if (banners) {
+            TM.Config.banners = banners;
+        }
+    }
+    if(!affiliateFound) {
+        TM.message('Atributo [TM.Config.affiliate] não é valido e será desconsiderado');
+        return false;
+    }
+    return true;
+}
+
+TM.setupPageBanners = function() {
+    var pageBanners = [], 
+        configBannersLength = TM.Config.banners.length;
+    if (TM.currHref.match(/tm=1/)) {
+        m = 'Banners disponíveis: '
+    }
+    for(var i = 0; i < configBannersLength; i++) {
+        var found = false, 
+            configBannerId = TM.Config.banners[i], 
+            banner = {};
+        if(TM.urlConfBanners) {
+            var TMurlConfBannersLength = TM.urlConfBanners.length;
+            for (var j = 0; j < TMurlConfBannersLength; j++) {
+                var urlConf = TM.urlConfBanners[j], 
+                    keyword = (typeof TM.Config.keyword == 'object') ? ',' + TM.Config.keyword.join(',') + ',' : ',' + TM.Config.keyword + ',';
+                if (urlConf.keyword && keyword.match(urlConf.keyword)) {
+                    var urlConfBannersLength = urlConf.banners.length;
+                    for(var k = 0; k < urlConfBannersLength; k++) {
+                        var urlBanner = urlConf.banners[k];
+                        if(urlBanner.id && urlBanner.id == configBannerId) {
+                            banner = urlBanner;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (urlConf.re && TM.currHref.match(urlConf.re) && !found) {
+                    if(urlConf.action && urlConf.action.toLowerCase() == 'de'){
+                        TM.adServer = 'de';
+                    }
+                    var urlConfBannersLength = urlConf.banners.length;
+                    for(var k = 0; k < urlConfBannersLength; k++) {
+                        var urlBanner = urlConf.banners[k];
+                        if(urlBanner.id && urlBanner.id == configBannerId) {
+                            banner = urlBanner;
+                            found = true;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        if(!found) {
+            var defaultBannersLength = TM.defaultBanners.length;
+            for(var l = 0; l < defaultBannersLength; l++) {
+                var defaultBanner = TM.defaultBanners[l];
+                if(defaultBanner.id && defaultBanner.id == configBannerId) {
+                    banner = defaultBanner;
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if(!found){
+            TM.message('Banner com id [' + configBannerId + '] não permitido pelo sistema');
+            continue;
+        }
+        TM.log.banners.available.push(banner.id);
+        if (TM.currHref.match(/tm=1/)) {
+            m += ('"' + banner.id + '"');
+            m += (i < (configBannersLength - 1)) ? ', ' : '';
+        }
+        pageBanners.push(banner);
+    }
+    if (TM.currHref.match(/tm=1/)) {
+        TM.message(m, 'LOG');
+    }
+    return pageBanners;
+};
+
+TM.isPopupEnable = function() {
+
+    // Gambiarra do Flavio Ricco
+    if (TM.currHref.indexOf('flavio-ricco') != -1) {
+        TM.message('Adicionar o atributo "TM.Config.floater = true" nas configurações');
+        TM.Config.floater = true;        
+    };
+
+    if (TM.Config.floater) {
+        return true;
+    };
+
+    var popupCookieName = TM.Config.site;
+    if(TM.Config.chan) {
+        popupCookieName += '_' + TM.Config.chan;
+    }
+    if(TM.Config.subchan) {
+        popupCookieName += '_' + TM.Config.subchan;
+    }
+
+    TM.popupcfg = popupCookieName;
+
+    if (document.cookie.indexOf(popupCookieName) != -1) {
+        return false;
+    }
+
+    return true;
+};
+
+TM.dfpSetup = function() {
+    var dfpSetup = '/8804', 
+        goog = googletag,
+        pubads = goog.pubads, 
+        config = TM.Config;
+    if(config.dfpSite) {
+        if (config.site != "folha" || config.site != "folclassificados" || config.site != "mf") {
+            if ((config.dfpChan == "shopping" && !TM.currHref.match(/^http(s)?:\/\/(www.)?shopping((-)?[0-9]*)?.uol.com.br(\/.*)?$/)) || (config.dfpChan == "todaoferta" && !TM.currHref.match(/^http(s)?:\/\/(www.)?todaoferta.uol.com.br(\/.*)?$/))) {
+                config.dfpSite = config.dfpAffiliate;
+            }
+            dfpSetup += '/' + config.dfpSite;
+        }
+        if(config.dfpSite == 'parceiros' && config.affiliate) {
+            if(!config.affiliate == 'parshopping'){
+                var dfpAff = config.affiliate.indexOf('par') == 0 ? config.affiliate.substring(3) : config.affiliate;
+                dfpSetup += '/' + dfpAff;
+            } else {
+                if(config.dfpAffiliate) {
+                    dfpSetup += '/' + config.dfpAffiliate;
+                }
+            }
+        }
+    }
+    if(config.dfpChan && config.dfpChan != config.dfpAffiliate) {
+        dfpSetup += '/' + config.dfpChan;
+    }
+    if(config.dfpSubchan) {
+        dfpSetup += '/' + config.dfpSubchan;
+    }
+    if (!config.dfpChan && !config.dfpSubhan && (config.site == "folha" || config.site == "folclassificados")) {
+        dfpSetup += '/folha';
+    }
+    TM.log.dfp = dfpSetup;
+    var pageBannersLength = TM.pageBanners.length;
+    for (var i = 0; i < pageBannersLength; i++) {
+        var banner = TM.pageBanners[i];
+        if (banner && !banner.action && !banner.rotate) {
+            if (banner.width != 1 || banner.height != 1 || TM.isPopupEnable()){
+                if(typeof config.campaignuol == 'object'){
+                    banner.campaignuol = '';
+                    for(key in config.campaignuol){
+                        var campaign = config.campaignuol[key];
+                        var keyLength = campaign.length;
+                        if(keyLength != 1){
+                            for (var x = 0; x < keyLength; x++) {
+                                if(banner.id == campaign[x]){
+                                    banner.campaignuol = key;
+                                }
+                            }
+                        } else {
+                            if(banner.id == campaign[0]){
+                                banner.campaignuol = key;
+                            }
+                        }
+                    }
+                }
+                if(banner.id && banner.id.match(/companion/i)){
+                    pubads = goog.companionAds;
+                }
+                if(banner.campaignuol){
+                    if (banner.dfpPos) {
+                        goog.defineSlot(dfpSetup, [banner.width, banner.height], banner.id).addService(pubads()).setTargeting("pos", banner.dfpPos).setTargeting("campaignuol", banner.campaignuol);
+                    } else {
+                        goog.defineSlot(dfpSetup, [banner.width, banner.height], banner.id).addService(pubads()).setTargeting("campaignuol", banner.campaignuol);
+                    }
+                } else {
+                    if (banner.dfpPos) {
+                        goog.defineSlot(dfpSetup, [banner.width, banner.height], banner.id).addService(pubads()).setTargeting("pos", banner.dfpPos);
+                    } else {
+                        goog.defineSlot(dfpSetup, [banner.width, banner.height], banner.id).addService(pubads());
+                    }
+                }
+                pubads = goog.pubads;
+            }
+        }
+    }
+    pubads().setTargeting("referer", TM.currHref);
+    if(TM.Config.group && TM.Config.group != '') {
+        TM.Config.group = TM.Config.group.toString();
+        pubads().setTargeting("group", TM.Config.group);
+    }
+    if(TM.Config.keyword && TM.Config.keyword != '') {
+        pubads().setTargeting("keyword", TM.Config.keyword);
+    }
+    if (TM.Config.dfpSite ==  "uol" || TM.Config.dfpSite == "uol_mobile" || TM.Config.dfpSite == "bol" || TM.Config.dfpSite == "bol_mobile"){
+        TM.Config.campaignuol = '1';
+    }
+    if(typeof TM.Config.campaignuol == 'number'){
+        TM.Config.campaignuol = config.campaignuol.toString();
+    }
+    if(TM.Config.campaignuol != '' && typeof TM.Config.campaignuol != 'object' && typeof TM.Config.campaignuol != 'undefined') {
+        TM.Config.campaignuol = config.campaignuol.toString();
+        pubads().setTargeting("campaignuol", TM.Config.campaignuol);
+    }
+    
+    #parse("./commons/bt.vm")
+
+    pubads().enableSyncRendering();
+    pubads().enableSingleRequest();
+    goog.enableServices();
+};
+
+#parse("./commons/deSetup.vm")
+
+TM.currentBanner = function() {
+    var banner = {}, 
+        doc = document, 
+        config = TM.Config, 
+        affiliate = config.affiliate, 
+        campaign = config.campaignuol, 
+        tmAds = TM.getElementsByClassName('tm-ads'), 
+        bannerBlock = tmAds[tmAds.length -1], 
+        bannerId = bannerBlock.id, 
+        bannerClass = bannerBlock.className, 
+        found = false;
+    if (!bannerClass.match(/tm-ads/)) {
+        TM.message('Banner [' + bannerId + '] não possui a classe [tm-ads]');
+        return false;
+    }
+    if(TM.adServer == 'de'){
+        if (typeof affiliate == 'object') {
+            for (i in affiliate){
+                var affiliateItemLength = affiliate[i].length;
+                for (var j = 0; j < affiliateItemLength; j++) {
+                    if(affiliate[i][j] == bannerId){
+                        var bannerAffiliate = i;
+                    }
+                }
+            }
+        }
+        if (typeof campaign == 'object'){
+            for (i in campaign){
+                if (campaign[i] == bannerId) {
+                    var bannerCampaign = i;
+                }
+            }
+        }
+    }
+    if(TM.pageBanners) {
+        var pageBannersLength = TM.pageBanners.length;
+        for (var i = 0; i < pageBannersLength; i++) {
+            var pageBanner = TM.pageBanners[i];
+            if (bannerId == pageBanner.id) {
+                banner = pageBanner;
+                banner.block = bannerBlock;
+                var matches = bannerId.match(/banner-([0-9]+[0-9]*[0-9]*)x([0-9]+[0-9]*[0-9]*)/);
+                if(matches){
+                    banner.width = matches[1];
+                    banner.height = matches[2];
+                }
+                banner.size = banner.width + 'x' + banner.height;
+                if(bannerAffiliate){
+                    banner.affiliate = bannerAffiliate;
+                }
+                if(bannerCampaign){
+                    banner.campaign = bannerCampaign;
+                }
+                banner.content = false;
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if(!found) {
+        TM.message('Banner [' + bannerId + '] não foi configurado ou não é permitido');
+        return false;
+    }
+
+    var bannerAreaSuffix = TM.Config.suffix || '-area';
+    if (document.getElementById(banner.id + bannerAreaSuffix)) {
+        if(banner.size != '1x1') {
+            banner.area = document.getElementById(bannerId + bannerAreaSuffix);
+            banner.relativePos = TM.hasRelativeParent(banner);
+        }
+    }
+    TM.log.banners.calls.push(banner.id);
+    return banner;
+};
+
+#parse("./commons/position.vm")
+
+#parse("./commons/tmLog.vm")

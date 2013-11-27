@@ -1,0 +1,73 @@
+(function() {
+    window.SHUOL = window.SHUOL || (function() {
+        var EXTERNAL_EVENT_URL = "https://clicklogger.rm.uol.com.br/shopping/?oper=1&prd=239&msr=TPV:__TPV__;si:__SI__;Conversao loja:1&grp=IdLoja:__STORE__";
+        var params = {
+            store: null,
+            tpv: 0,
+            si: 0
+        };
+
+        function buildUrl() {
+            return EXTERNAL_EVENT_URL.replace("__TPV__", params["tpv"]).replace("__SI__", params["si"]).replace("__STORE__", params["store"])
+        }
+
+        function check(config) {
+            if (typeof config != "object") {
+                return false
+            }
+            for (var c in params) {
+                if (config[c]) {
+                    params[c] = config[c]
+                }
+            }
+            if (!params["store"]) {
+                return
+            }
+            try {
+                var url = buildUrl(EXTERNAL_EVENT_URL);
+                if (url === readCookie("tcontrol")) {
+                    return
+                }
+                var iframe = document.createElement("iframe");
+                var uniqueString = "iFrame" + (Math.random() * 1000).toString();
+                document.body.appendChild(iframe);
+                iframe.style.display = "none";
+                iframe.contentWindow.name = uniqueString;
+                iframe.src = url;
+                createCookie("tcontrol", url, 10);
+                return true
+            } catch (e) {
+                return false
+            }
+        }
+
+        function createCookie(name, value, minutes) {
+            if (minutes) {
+                var date = new Date();
+                date.setTime(date.getTime() + (minutes * 60 * 1000));
+                var expires = "; expires=" + date.toGMTString()
+            } else {
+                var expires = ""
+            }
+            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/"
+        }
+
+        function readCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(";");
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == " ") {
+                    c = c.substring(1, c.length)
+                }
+                if (c.indexOf(nameEQ) == 0) {
+                    return decodeURIComponent(c.substring(nameEQ.length, c.length))
+                }
+            }
+            return null
+        }
+        return {
+            check: check
+        }
+    })()
+})();

@@ -1,0 +1,14 @@
+
+TM.console = function (argument) {
+    if (argument == 'dfp' || argument == 'de') {
+        document.cookie = "TM="+argument;
+        location.reload();
+    }
+    var calls = TM.log.banners.calls, 
+        available = TM.log.banners.available;
+    Array.prototype.diff = function(a) {
+        return this.filter(function(i) {return !(a.indexOf(i) > -1);});
+    };
+    TM.log.banners.difference = available.diff(calls);
+    return TM.log;
+};

@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>uol.tag-manager</groupId>
+		<artifactId>tag-manager</artifactId>
+		<version>1.4.8-SNAPSHOT</version>
+	</parent>
+	<artifactId>tm-file-checker</artifactId>
+	<name>tm-file-checker</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<dependencies>
+		<!-- Spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>uol.ecommerce.commons</groupId>
+			<artifactId>commons-spring</artifactId>
+		</dependency>
+		<!-- Spring -->
+		<!-- Log -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+		<!-- Log -->
+		<!-- Configuracao remota -->
+		<dependency>
+			<groupId>br.com.uol.reconf</groupId>
+			<artifactId>reconf-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>br.com.uol.reconf</groupId>
+			<artifactId>reconf-spring</artifactId>
+		</dependency>
+		<!-- Configuracao remota -->
+		<!-- CVS -->
+		<dependency>
+			<groupId>com.svnkit</groupId>
+			<artifactId>svnkit</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<!-- CVS -->
+		<!-- Servidor -->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.0.3.v20130506</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+			<version>9.0.3.v20130506</version>
+		</dependency>
+		<!-- Servidor -->
+		<!-- Teste -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Teste -->
+		<!-- Utils -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-email</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>quartz</groupId>
+			<artifactId>quartz</artifactId>
+		</dependency>
+		<!-- Utils -->
+	</dependencies>
+
+	<build>
+		<resources>
+			<resource>
+				<targetPath>../classes</targetPath>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>*</include>
+				</includes>
+			</resource>
+			<resource>
+				<targetPath>../scripts</targetPath>
+				<directory>src/main/resources/scripts</directory>
+				<includes>
+					<include>*</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<!-- Execute JUnit tests -->
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12</version>
+				<configuration>
+					<skipTests>${skip.unit.tests}</skipTests>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptors>
+						<descriptor>src/main/assembly/assembly.xml</descriptor>
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>${project.artifactId}</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>quebec</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>uol.corp.plugins</groupId>
+						<artifactId>quebec-maven-plugin</artifactId>
+						<version>1.1.11</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>runAssembly</goal>
+								</goals>
+								<configuration>
+									<assemblyId>bin</assemblyId>
+									<assemblyFormat>tar.gz</assemblyFormat>
+									<projectEmail>l-dev-tm@uolinc.com</projectEmail>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

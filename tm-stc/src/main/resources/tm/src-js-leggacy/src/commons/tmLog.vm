@@ -1,0 +1,105 @@
+
+TM.console = function (a) {
+    if (a == 'dfp' || a == 'de') {
+        document.cookie = "TM="+a;
+        location.reload();
+    }
+    var log       = this.log;
+    var diff      = this.diff;
+    var banners   = log.banners;
+    var calls     = banners.calls.sort();
+    var c         = '';
+    var len       = calls.length;
+    var message   = 'Adserver: ' + TM.adServer;
+    var debugMode = this.currHref.match(/(tm|google(_force)?_console)=1/) ? true : false;
+    if (len) {
+        for (var i = 0; i < len; i++) {
+            c += calls[i];
+            c += (i < (len - 1)) ? ', ' : '';
+        }
+    }
+    if (debugMode) {
+        TM.message(message, 'LOG');
+        if (TM.adServer == 'dfp') {
+            TM.message('path: ' + log.dfp, 'LOG');
+        }
+        message = 'Banners exibidos: ' + c;
+        TM.message(message, 'LOG');
+    }
+    if (diff) {
+        len = diff.length;
+        message = 'Os banners: ';
+        for (var i = 0; i < len; i++) {
+            message += diff[i];
+            message += (i < (len - 1)) ? ', ' : '';
+        }
+        message += ' foram configurados e não foram chamados, você só pode configurar os banners que exibirá nesta página, favor mudar a configuração da página para somente os que serão exibidos na mesma.';
+        TM.message(message, 'ERROR');
+        message = 'Favor configurar o objeto da seguinte forma: TM.Config.banners = [' + c + '];';
+        TM.message(message, 'WARN');
+    }
+};
+
+TM.arrayDiff = function (a1, a2) {
+    var diff   = [];
+    var len = a2.length;
+    var aux = ';' + a1.join(';') + ';';
+    for (var i = 0; i < len; i++) {
+        if(aux.indexOf(';' + a2[i] + ';') < 0){
+            diff.push(a2[i]);
+        }
+    }
+    return diff;
+};
+
+TM.callsDiff = function () {
+    var calls = [];
+    var diff = [];
+    var displayed = TM.dfpCalls;
+    var pageBanners = TM.pageBanners || false;
+    var available = [];
+    if(!pageBanners) {
+        return false
+    }
+    var len = pageBanners.length;
+    for(var i = 0; i < len; i++) {
+        var banner = pageBanners[i];
+        if(!banner.action || banner.action.match(/dfp/i)){
+            available.push(banner.id);
+        }
+    }
+    available = TM.arrayDiff(["banner-1x1"], available);
+    available = TM.arrayDiff(["banner-1x1-1"], available);
+    if(displayed){
+        len = displayed.length;
+        for(var i = 0; i < len; i++) {
+            calls.push(displayed[i].id);
+        }
+        this.log.calls = calls
+        diff = TM.arrayDiff(calls, available) || false;
+        if (diff.length > 0) {
+            this.diff = this.log.banners.diff = diff;
+            return '?calls=' + encodeURIComponent(available.join(',')) + '&notDisplayed=' + encodeURIComponent(diff.join(','));
+        }
+    }
+    return false;
+};
+
+TM.callLog = function (message) {
+    script      = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src  = '//tm.imguol.com/diff/' + message;
+    document.body.appendChild(script);
+};
+
+TM.initLog = function () {
+    var callsDiff = TM.callsDiff();
+    if (callsDiff){
+        TM.callLog(callsDiff);
+    }
+    // banners fantasmas
+    if (TM.log && TM.log.dfp == "/8804/bol") {
+        TM.callLog('?debug=true')
+    }
+    TM.console();
+};

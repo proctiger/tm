@@ -1,0 +1,27 @@
+
+var bt = TM.getCookie("BT", document.cookie) || '', 
+    retargeting = TM.getCookie("DEretargeting", document.cookie);
+    bt = (bt.indexOf("501") != -1) ? bt + "1501;" : bt;
+    bt = (bt.indexOf("502") != -1) ? bt + "1502;" : bt;
+    bt = (bt.indexOf("503") != -1) ? bt + "1503;" : bt;
+    bt = (bt.indexOf("504") != -1) ? bt + "1504;" : bt;
+    bt = (bt.indexOf("505") != -1) ? bt + "1505;" : bt;
+    bt = (bt.indexOf("506") != -1) ? bt + "1506;" : bt;
+    bt = (bt.indexOf("507") != -1) ? bt + "1507;" : bt;
+    bt = (bt.indexOf("508") != -1) ? bt + "1508;" : bt;
+    bt = (bt.indexOf("509") != -1) ? bt + "1509;" : bt;
+    bt = (bt.indexOf("510") != -1) ? bt + "1510;" : bt;
+
+if(retargeting){
+    bt = (bt || ";") + retargeting + ";";
+}
+if (bt) {
+    btLength = bt.length;
+    bt = bt.substring(1, bt.length-1).split(';').sort();
+    for(var i = 0; i <= btLength; i++){
+        if(bt[i+1] == bt[i]){
+            bt.splice(i, 1);
+        }
+    }
+    pubads().setTargeting("bt", bt);
+}

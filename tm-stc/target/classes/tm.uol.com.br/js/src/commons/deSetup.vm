@@ -1,0 +1,43 @@
+
+TM.deSetup = function() {
+    var deConfig = {};
+
+    deConfig.tm = '1';
+    deConfig.reso = screen.width + "x" + screen.height;
+    deConfig.site = TM.Config.site;
+    deConfig.tile = Math.floor((+new Date()) * 1000 * Math.random());
+    deConfig.expble = TM.Config.expble || '1';
+
+    if(!TM.Config.affiliate || TM.Config.affiliate == '') {
+        deConfig.affiliate = TM.Config.site + TM.Config.chan;
+    } else {
+        deConfig.affiliate = TM.Config.affiliate;
+    }
+
+    var conntype = document.body;
+    if (conntype) {
+        conntype.style.behavior = 'url(#default#clientCaps)';
+        conntype = conntype.connectionType == 'lan' ? 1 : 0;
+    }
+    deConfig.conntype = conntype || '0';
+
+    deConfig.chan = TM.Config.chan;
+
+    if(TM.Config.subchan && TM.Config.subchan != '') {
+        deConfig.subchan = TM.Config.subchan;
+    }
+
+    if(TM.Config.campaignuol && TM.Config.campaignuol != '') {
+        deConfig.cmpng = TM.Config.campaignuol;
+    }
+
+    if(TM.Config.group && TM.Config.group != '') {
+        deConfig.group = TM.Config.group;
+    }
+
+    if(TM.Config.keyword && TM.Config.keyword != '') {
+        deConfig.keyword = TM.Config.keyword;
+    }
+
+    return deConfig;
+};

@@ -1,0 +1,44 @@
+
+TM.log = {}, 
+TM.log.banners = {}, 
+TM.log.banners.available = [], 
+TM.log.banners.calls = [];
+
+#parse("./commons/getElementsByClassName.vm")
+
+#parse("./commons/messages.vm")
+
+#parse("./commons/findSiteInDfpMap.vm")
+
+TM.makeDeUri = function(banner) {
+    var url_base = 'http://bn.uol.com.br/js.ng/';
+        
+    TM.deConfig.size = banner.size;
+    TM.deConfig.page = banner.pos;
+    
+    var querystring = [];
+    for(var key in TM.deConfig) {
+        var paramValue = TM.deConfig[key];
+        if(typeof paramValue == 'string' || typeof paramValue == 'number') {
+            querystring.push([key, paramValue].join('='));
+        } else if(paramValue.constructor === Array) {
+            var paramLength = paramValue.length;
+            for(var i = 0; i < paramLength; i++) {
+                if((typeof paramValue[i] == 'string' || typeof paramValue[i] == 'number') &&  TM.stringTrim(paramValue[i]) != '') {
+                    querystring.push([key, paramValue[i]].join('='));
+                }
+            }
+        }
+    }  
+    return url_base + querystring.join("&") + "?";
+};
+
+TM.stringTrim = function(obj){
+    if(typeof obj == 'string') {
+        return obj.replace(/^\s+|\s+$/g,'');
+    }
+    return obj;
+};
+
+#parse("./commons/display.vm")
+

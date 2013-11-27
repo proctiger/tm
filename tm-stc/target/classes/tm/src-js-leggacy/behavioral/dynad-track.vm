@@ -1,0 +1,11 @@
+var tmppagecategory = 'undefined'.replace(/,/g, '/'),
+	categories = '',
+	asapcategories = tmppagecategory.split('/');
+for (var i = 1, length = asapcategories.length; i < length; i++) 1 < i && (categories += ','), categories += asapcategories[i].toString();
+var pxl = document.createElement('img');
+var instance = 'dft-br';
+var clientId = 30;
+var domain = '//' + instance + '.dynad.net/'
+pxl.src = domain + '/access?iid\x3d' + id + '\x26_evt\x3dcateg\x26_handleAs\x3dimg\x26c\x3d' + categories + '\x26t\x3d' + '' + '\x26skutop3\x3d' + ',,';
+var s = document.getElementsByTagName('img')[0];
+s.parentNode.insertBefore(pxl, s);

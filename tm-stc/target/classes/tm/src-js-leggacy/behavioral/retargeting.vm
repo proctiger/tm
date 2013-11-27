@@ -1,0 +1,23 @@
+
+// Efetuar chamada de retargeting para o parceiro
+TM.retargetingInit = function(partner) {
+    var urlPartner = 'http://w.bn.uol.com.br/retargeting/?categoria=' + partner;
+    var ifrm = document.createElement('iframe');
+    ifrm.setAttribute('src', urlPartner);
+    ifrm.style.width = '0px';
+    ifrm.style.height = '0px';
+    ifrm.style.border = '0px';
+    ifrm.setAttribute('width', '0');
+    ifrm.setAttribute('height', '0');
+    ifrm.setAttribute('margineidth', '0');
+    ifrm.setAttribute('marginheight', '0');
+    ifrm.setAttribute('frameborder', '0');
+    ifrm.setAttribute('scrolling', 'no');
+    if(document.body != null && document.location.protocol == 'http:') {
+        document.body.appendChild(ifrm);
+    }
+}
+
+if(TM.retartgetingPartner) {
+    TM.retargetingInit(TM.retartgetingPartner);
+}

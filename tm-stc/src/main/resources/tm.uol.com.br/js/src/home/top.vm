@@ -1,0 +1,20 @@
+
+TM.message = function(message){
+    if (window.console) {
+        console.log('' + message);
+    };
+};
+
+TM.log = {}, 
+TM.log.banners = {}, 
+TM.log.banners.available = [], 
+TM.log.banners.calls = [];
+
+TM.getCookie = function (name, cookie) {
+    return cookie.match(new RegExp('(?:^|;)\\s?' + name.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1') + '=(.*?)(?:;|$)','i')) && unescape(cookie.match(new RegExp('(?:^|;)\\s?' + name.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1') + '=(.*?)(?:;|$)','i'))[1]);
+};
+
+TM.allowCuttingEdge = function() {
+    TM.cecfg = 'CEHome';
+    return (document.cookie.indexOf(TM.cecfg) == -1);
+};

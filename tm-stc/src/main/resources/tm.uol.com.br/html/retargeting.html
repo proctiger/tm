@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Retargeting - UOL Tag Manager</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="SHORTCUT ICON" href="http://home.img.uol.com.br/favicon.ico" />
+</head>
+<body>
+	<script type="text/javascript">
+		(function() {
+			var init = function() {
+				var partnerId = getPartnerId();
+				if (!partnerId) {
+					console.log('[UOL Tag Manager] Parâmetro [partner] não foi encontrado na QUERY_STRING');
+					return;
+				}
+
+				upsertCookie(partnerId);
+			};
+
+			var getPartnerId = function() {
+				var location = new String(window.location);
+				var query_string = location.split('?')[1];
+
+				if (!query_string) {
+					return false;
+				}
+
+				var parameterName = 'partner';
+				var vars = query_string.split('&');
+				for ( var i = 0; i < vars.length; i++) {
+					var key = new String(vars[i].split('=')[0]);
+					if (key == parameterName) {
+						return (vars[i].split('=')[1]).toString().split("#")[0];
+					}
+				}
+
+				return false;
+			};
+
+			var upsertCookie = function(partnerId) {
+				var currCookieValue = getCookieValue();
+				
+				var values = [];
+				if(currCookieValue) {
+					values = currCookieValue.split(';');
+				}
+				
+				var valueFound = false;
+				for ( var i = 0; i < values.length; i++) {
+					if (values[i] == partnerId) {
+						valueFound = true;
+					}
+				}
+
+				if (!valueFound) {
+					values.push(partnerId);					
+				}
+				
+				setCookie(values);
+			};
+
+			var getCookieValue = function() {
+				var c_name = 'DEretargeting';
+				var c_value = document.cookie;
+				var c_start = c_value.indexOf(" " + c_name + "=");
+				
+				if (c_start == -1) {
+					c_start = c_value.indexOf(c_name + "=");
+				}
+				
+				if (c_start == -1) {
+					c_value = null;
+				} else {
+					c_start = c_value.indexOf("=", c_start) + 1;
+					var c_end = c_value.indexOf(";", c_start);
+					if (c_end == -1) {
+						c_end = c_value.length;
+					}
+					c_value = unescape(c_value.substring(c_start, c_end));
+				}
+				
+				return c_value;
+			};
+
+			var setCookie = function(values) {
+				try{
+		            var expires = new Date();
+		            expires.setDate(expires.getDate() + 30);
+
+		            var cookie = 'DEretargeting';
+		            cookie += '=' + values.join('%3B');
+		            cookie += ';Domain=' + 'uol.com.br';
+		            cookie += ';Path=' + '/';
+		            cookie += ";Expires=" + expires.toUTCString();
+
+		            document.cookie = cookie;
+					console.log('[UOL Tag Manager] Cookie de retargeting atualizado');
+				} catch(e) {
+					console.log('[UOL Tag Manager] Erro ao atualizar cookie de retargeting: ' + e);
+				}
+			};
+
+			init();
+		}());
+	</script>
+</body>
+</html>

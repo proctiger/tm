@@ -1,0 +1,33 @@
+## GAMBIS para os scripts "b" de retargeting (REMOVER ASSIM QUE POSSIVEL)
+#if($scriptPath.indexOf("./b/par/sephora.js") != "-1")
+    #set($scriptPath = $scriptPath.replace("./b/","./"))
+#elseif($scriptPath.indexOf("./b/par/netshoes.js") != "-1")
+    #set($scriptPath = $scriptPath.replace("./b/","./"))
+#elseif($scriptPath.indexOf("./b/par/dafiti.js") != "-1")
+    #set($scriptPath = $scriptPath.replace("./b/","./"))
+#elseif($scriptPath.indexOf("./b/par/dell.js") != "-1")
+    #set($scriptPath = $scriptPath.replace("./b/","./"))
+#elseif($scriptPath.indexOf("./b/par/netflix.js") != "-1")
+    #set($scriptPath = $scriptPath.replace("./b/","./"))
+#elseif($scriptPath.indexOf("./b/par/cyrela.js") != "-1")
+    #set($scriptPath = $scriptPath.replace("./b/","./"))
+#elseif($scriptPath.indexOf("./b/par/fastshop.js") != "-1")
+    #set($scriptPath = $scriptPath.replace("./b/","./"))
+#elseif($scriptPath.indexOf("./b/par/even.js") != "-1")
+    #set($scriptPath = $scriptPath.replace("./b/","./"))
+#end
+
+## GAMBIS para o script da barra uol (REMOVER ASSIM QUE POSSIVEL)
+#if($scriptPath.indexOf("./b/uol/barrauol.js") != "-1")
+    #set($scriptPath = $scriptPath.replace("./b/","./"))
+#end
+
+## GAMBIS para a home do uol (REMOVER ASSIM QUE POSSIVEL)
+#if($scriptPath == "./h/homeuol.js")
+    #set($scriptPath = "./uol/homeuol.js")
+#end
+
+## GAMBIS para o bol (REMOVER ASSIM QUE POSSIVEL)
+#if($scriptPath == "./h/bol/home.js" || $scriptPath == "./h/pd/bol.js")
+    #set($scriptPath = "./par/bol.js")
+#end

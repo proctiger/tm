@@ -1,0 +1,225 @@
+
+TM.Config.platform = 'mobile';
+TM.Config.chan = TM.Config.chan || TM.Config.wapchan;
+TM.Config.subchan = TM.Config.subchan || TM.Config.wapsubc;
+
+TM.findChanInDfpMap = function() {
+    if(TM.Config.chan) {
+        var chanFound = false;
+        var chanMapLength = TM.dfpChanMap.length;
+        for(var i = 0; i < chanMapLength; i++) {
+            var chanMap = TM.dfpChanMap[i];
+            if(TM.Config.chan == chanMap.deChan) {
+                TM.Config.dfpChan = chanMap.dfpChan;
+                chanFound = true;
+                break;
+            }
+        }
+        if(!chanFound) {
+            TM.message('Atributo [TM.Config.chan] não é valido e será desconsiderado');
+        }
+    }
+};
+
+TM.findSubchanInDfpMap = function() {
+    var config = TM.Config;
+    if(config.subchan) {
+        var subchanFound = false, 
+        subchanMapLength = TM.dfpSubchanMap.length;
+        for(var i = 0; i < subchanMapLength; i++) {
+            var subchanMap = TM.dfpSubchanMap[i];
+            if(config.subchan.match(subchanMap.deSubchan)) {
+                config.dfpSubchan = subchanMap.dfpSubchan;
+                subchanFound = true;
+                break;
+            }
+        }
+        if(!subchanFound) {
+            TM.message('Atributo [TM.Config.subchan] não é valido e será desconsiderado');
+        }
+    }
+};
+
+TM.validateConfig = function() {
+    if (!TM.Config) {
+        TM.message('Objeto de configuração [TM.Config] não foi encontrado');
+        return false;
+    }
+    if (!TM.Config.site) {
+        TM.message('Atributo [TM.Config.site] não foi encontrado');
+        return false;
+    }
+    
+    if(!TM.findSiteInDfpMap()){
+        return false;
+    }
+    
+    TM.findChanInDfpMap();
+    TM.findSubchanInDfpMap();
+    
+    if (TM.Config.site == 'par' && !TM.Config.affiliate) {
+        TM.message('Atributo [TM.Config.affiliate] é obrigatório para parceiros e não foi encontrado');
+        return false;
+    }
+    if (!TM.Config.banners || TM.Config.banners.length < 1) {
+        TM.message('Atributo [TM.Config.banners] não foi encontrado');
+        return false;
+    }
+    return true;
+};
+
+TM.setupPageBanners = function() {
+    var pageBanners = [], 
+        configBannersLength = TM.Config.banners.length;
+    if (TM.currHref.match(/tm=1/)) {
+        m = 'Banners disponíveis: '
+    }
+    for(var i = 0; i < configBannersLength; i++) {
+        var found = false, 
+            configBannerId = TM.Config.banners[i], 
+            banner = {};
+        if(TM.urlConfBanners) {
+            var TMurlConfBannersLength = TM.urlConfBanners.length;
+            for (var j = 0; j < TMurlConfBannersLength; j++) {
+                var urlConf = TM.urlConfBanners[j], 
+                    keyword = (typeof TM.Config.keyword == 'object') ? ',' + TM.Config.keyword.join(',') + ',' : ',' + TM.Config.keyword + ',';
+                if (urlConf.keyword && keyword.match(urlConf.keyword)) {
+                    var urlConfBannersLength = urlConf.banners.length;
+                    for(var k = 0; k < urlConfBannersLength; k++) {
+                        var urlBanner = urlConf.banners[k];
+                        if(urlBanner.id && urlBanner.id == configBannerId) {
+                            banner = urlBanner;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (urlConf.re && TM.currHref.match(urlConf.re) && !found) {
+                    if(urlConf.action && urlConf.action.toLowerCase() == 'de'){
+                        TM.adServer = 'de';
+                    }
+                    var urlConfBannersLength = urlConf.banners.length;
+                    for(var k = 0; k < urlConfBannersLength; k++) {
+                        var urlBanner = urlConf.banners[k];
+                        if(urlBanner.id && urlBanner.id == configBannerId) {
+                            banner = urlBanner;
+                            found = true;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        if(!found) {
+            var defaultBannersLength = TM.defaultBanners.length;
+            for(var l = 0; l < defaultBannersLength; l++) {
+                var defaultBanner = TM.defaultBanners[l];
+                if(defaultBanner.id && defaultBanner.id == configBannerId) {
+                    banner = defaultBanner;
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if(!found){
+            TM.message('Banner com id [' + configBannerId + '] não permitido pelo sistema');
+            continue;
+        }
+        TM.log.banners.available.push(banner.id);
+        if (TM.currHref.match(/tm=1/)) {
+            m += ('"' + banner.id + '"');
+            m += (i < (configBannersLength - 1)) ? ', ' : '';
+        }
+        pageBanners.push(banner);
+    }
+    if (TM.currHref.match(/tm=1/)) {
+        TM.message(m, 'LOG');
+    }
+    return pageBanners;
+};
+
+#parse('./dfpSetup-default.vm')
+
+TM.deSetup = function() {
+    var deConfig = {}, 
+    config = TM.Config;
+        
+    deConfig.tm = '1';
+    deConfig.reso = screen.width + "x" + screen.height;
+    deConfig.site = config.site;
+    deConfig.tile = Math.floor((+new Date()) * 1000 * Math.random());
+    deConfig.expble = config.expble || '1';
+        
+    var conntype = document.body;
+    if (conntype) {
+        conntype.style.behavior = 'url(#default#clientCaps)';
+        conntype = conntype.connectionType == 'lan' ? 1 : 0;
+    }
+    deConfig.conntype = conntype || '0';
+        
+    if(config.chan && config.chan != '' || (config.wapchan && config.wapchan != '')) {
+        deConfig.wapchan = config.chan || config.wapchan;
+    }
+
+    if(!config.affiliate || config.affiliate == '') {
+        deConfig.affiliate = config.site + deConfig.wapchan;
+    } else {
+        deConfig.affiliate = config.affiliate;
+    }
+        
+    if((config.subchan && config.subchan != '') || (config.wapsubc && config.wapsubc != '')) {
+        deConfig.wapsubc = config.subchan || config.wapsubc;
+    }
+        
+    if(config.campaignuol && config.campaignuol != '') {
+        deConfig.cmpng = config.campaignuol;
+    }
+        
+    if(config.group && config.group != '') {
+        deConfig.group = config.group;
+    }
+        
+    if(config.keyword && config.keyword != '') {
+        deConfig.keyword = config.keyword;
+    }
+    return deConfig;
+};
+
+TM.currentBanner = function() {
+    var banner = {},
+        doc = document, 
+        config = TM.Config, 
+        tmAds = TM.getElementsByClassName('tm-ads'), 
+        bannerBlock = tmAds[tmAds.length -1], 
+        bannerId = bannerBlock.id, 
+        found = false;
+
+    if(TM.pageBanners) {
+        var pageBannersLength = TM.pageBanners.length;
+        for (var i = 0; i < pageBannersLength; i++) {
+            var pageBanner = TM.pageBanners[i]; 
+            if(bannerId == pageBanner.id) {
+                banner = pageBanner;
+                banner.block = bannerBlock;
+                banner.size = banner.size || banner.width + 'x' + banner.height;
+                found = true;
+                break;
+            }
+        }
+    }
+        
+    if(!found) {
+        return false;
+    }
+        
+    var bannerClass = banner.block.className;
+    if (!bannerClass.match(/tm-ads/)) {
+        TM.message('Banner [' + bannerId + '] não possui a classe [tm-ads]');
+        return false;
+    }
+    return banner;
+};
+

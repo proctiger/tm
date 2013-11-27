@@ -1,0 +1,27 @@
+#if($scriptPath.indexOf("./par/sephora.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#elseif($scriptPath.indexOf("./par/netshoes.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#elseif($scriptPath.indexOf("./par/dafiti.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#elseif($scriptPath.indexOf("./par/dell.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#elseif($scriptPath.indexOf("./par/netflix.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#elseif($scriptPath.indexOf("./par/cyrela.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#elseif($scriptPath.indexOf("./par/fastshop.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+        
+#elseif($scriptPath.indexOf("./par/even.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#end
+
+#set($tmp = $fileListToInclude.add("./modules/behavioral/track.js"))

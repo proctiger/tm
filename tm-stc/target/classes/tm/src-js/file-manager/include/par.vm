@@ -1,0 +1,71 @@
+#if($scriptPath.indexOf("./par/bol.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/src/dfp/gpt.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/homebol.js"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/home/top.vm"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/home/bol.vm"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/home/bottom.vm"))
+
+#elseif($scriptPath.indexOf("./par/shopping.js") != "-1" || $scriptPath.indexOf("./par/catapreco.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/src/dfp/gpt.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/default.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/map/shopping.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/shopping.js"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/commons.vm"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-full.vm"))
+    
+#elseif($scriptPath.indexOf("./par/todaoferta.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/src/dfp/gpt.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/default.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/map/todaoferta.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/todaoferta.js"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/commons.vm"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-full.vm"))
+        
+#elseif($scriptPath.indexOf("./par/folha.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/src/dfp/gpt.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/default.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/map/folha.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/folha.js"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/commons.vm"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-full.vm"))
+    
+#elseif($scriptPath.indexOf("./par/uolinvest.js") != "-1" || $scriptPath.indexOf("./par/uolnamoro.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/src/dfp/gpt.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/default.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/map/uol.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/par.js"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/commons.vm"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-full.vm"))
+    
+#elseif($scriptPath.indexOf("./par/xpg.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/src/dfp/gpt.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/default.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/map/par-xpg.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/par.js"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/commons.vm"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-full.vm"))
+    
+#elseif($scriptPath.indexOf("./par/sephora.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#elseif($scriptPath.indexOf("./par/netshoes.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#elseif($scriptPath.indexOf("./par/dafiti.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+
+#elseif($scriptPath.indexOf("./par/fastshop.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+        
+#elseif($scriptPath.indexOf("./par/even.js") != "-1")
+    #set($tmp = $fileListToInclude.add("./modules/retargeting/track.js"))
+    
+#elseif($scriptPath.indexOf("./par/") != "-1")
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/src/dfp/gpt.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/default.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/map/par.js"))
+    #set($tmp = $fileListToInclude.add("./src-js-leggacy/config/divs/par.js"))
+    #set($tmp = $fileListToParse.add("./src-js-leggacy/src/display-par.vm"))
+
+#end
+#set($tmp = $fileListToParse.add("./src-js-leggacy/src/init.vm"))

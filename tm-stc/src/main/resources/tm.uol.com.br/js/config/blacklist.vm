@@ -1,0 +1,2 @@
+
+TM.blacklist = [/http(s)?:\/\/(www.)?americaeconomiabrasil.com.br(\/.*)?/];

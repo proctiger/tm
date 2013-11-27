@@ -1,0 +1,166 @@
+
+TM.hasRelativeParent = function(banner) {
+    var elem = banner.block;
+    while(true){
+        if(!elem.parentNode || elem.parentNode.tagName.toLowerCase() == 'body') {
+            break;
+        }
+        elem = elem.parentNode;
+        var elemPos = TM.getElemPosition(elem);
+        if(elemPos && elemPos == 'relative'){
+            return true;
+        }
+    }
+    return false;
+};
+
+TM.getElemPosition = function(elem) {
+    if(window.getComputedStyle){
+        var elemStyle = window.getComputedStyle(elem);
+        if(elemStyle && elemStyle.position){
+            return elemStyle.position;
+        }
+    } else if(elem.currentStyle && elem.currentStyle['position']){
+        return elem.currentStyle['position'];
+    }
+    return false;
+};
+
+TM.getPositionTop = function(banner) {
+    if (banner) {
+        var pos = banner.area.offsetTop || 0;
+        if(!banner.relativePos) {
+            var elem = banner.area;
+            while(true){
+                if(!elem.offsetParent){
+                    break;
+                }
+                elem = elem.offsetParent;
+                pos += elem.offsetTop;
+            }
+        }
+    }
+    return pos;
+};
+
+TM.getPositionLeft = function(banner) {
+    var pos = banner.area.offsetLeft;
+    if(!banner.relativePos) {
+        var elem = banner.area;
+        while(true){
+            if(!elem.offsetParent){
+                break;
+            }
+            elem = elem.offsetParent;
+            pos += elem.offsetLeft;
+        }
+    }
+    return pos;
+};
+
+TM.position = function(banner) {
+    if (typeof banner == 'object' && banner.id && !banner.id.match(/1x1(-[0-9]*)?$/) && banner.area) {
+        var topPos = TM.getPositionTop(banner), 
+            leftPos = TM.getPositionLeft(banner), 
+            bannerBlock = banner.block; 
+        bannerBlock.style.position = 'absolute';
+        bannerBlock.style.top = topPos + 'px';
+        bannerBlock.style.left = leftPos + 'px';
+        if (banner.area.parentNode.tagName.match(/body/i)) {
+            bannerBlock.style.width = '5px';
+            bannerBlock.style.height = '5px';
+            bannerBlock.style.overflow = 'hidden';
+        }
+    }
+    return true;
+};
+
+TM.enableReposition = function() {
+    TM.checkInterval = TM.checkInterval || 100;
+    TM.addEvent("resize", window, TM.reposition);
+    setTimeout(TM.repositionLoop, TM.checkInterval);
+};
+
+TM.reposition = function() {
+    var displayedLength = TM.displayedBanners.length;
+    for (var i = 0; i < displayedLength; i++) {
+        var banner = TM.displayedBanners[i];
+        TM.position(banner);
+        TM.hideEmptyBanner(banner);
+    }
+};
+
+TM.repositionLoop = function() {
+    TM.reposition();
+    if (TM.checkInterval < 5000) {
+        TM.checkInterval += 100;
+    }
+    setTimeout(TM.repositionLoop, TM.checkInterval);
+};
+
+TM.addEvent = function(ev, elem, func) {
+    if (window.addEventListener) {
+        elem.addEventListener(ev, func, false);
+    } else {
+        if (window.attachEvent) {
+            elem.attachEvent("on" + ev, func);
+        }
+    }
+};
+
+TM.hideBanner = function(banner) {
+    banner.block.style.display = 'none';
+    if(banner.area && typeof banner.area == 'object') {
+        banner.area.style.display = 'none';
+        var parent = banner.area.parentNode || false;
+        if(parent && parent.className && (parent.className == 'publicidade' || parent.className == 'pub')){
+            parent.style.display = 'none';
+        }
+    } else {
+        var parent = banner.block.parentNode;
+        if(parent && parent.className && (parent.className == 'publicidade' || parent.className == 'pub')){
+            parent.style.display = 'none';
+        }
+    }
+};
+
+TM.hideBannerAdServer = function (bannerId) {
+    var displayedLength = TM.displayedBanners.length;
+    for (var i = 0; i < displayedLength; i++) {
+        if(TM.displayedBanners[i].id == bannerId){
+            TM.hideBanner(TM.displayedBanners[i])
+        }
+    }
+};
+
+TM.hideEmptyBanner = function(banner) {
+    if (typeof banner != 'object') {
+        return false;
+    }
+    TM.hideBanners = TM.hideBanners || [];
+    var hideBannersLength = TM.hideBanners.length;
+    for (var i = 0; i < hideBannersLength; i++) {
+        if (banner.id == TM.hideBanners[i]) {
+            return false;
+        }
+    }
+    var bannerSizeList = ['300x100', '300x250', '300x600'], 
+        bannerSizeListLength = bannerSizeList.length;
+    for (var j = 0; j < bannerSizeListLength; j++) {
+        if (banner.id.match(bannerSizeList[j])) {
+            if (TM.bannerShouldHide(banner)) {
+                TM.hideBanner(banner);
+                TM.hideBanners.push(banner.id);
+            }
+        }
+    }
+    return true;
+};
+
+TM.bannerShouldHide = function(banner) {
+    var bannerImages = banner.block.getElementsByTagName("img");
+    if (bannerImages.length == 1 && bannerImages[0].src.match(/\/1x1.gif$/)) {
+        return true;
+    }
+    return false;
+};

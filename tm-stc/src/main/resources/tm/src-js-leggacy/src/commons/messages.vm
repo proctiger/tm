@@ -1,0 +1,37 @@
+
+TM.getCookie = function (name, cookie) {
+    return cookie.match(new RegExp('(?:^|;)\\s?' + name.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1') + '=(.*?)(?:;|$)','i')) && unescape(cookie.match(new RegExp('(?:^|;)\\s?' + name.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1') + '=(.*?)(?:;|$)','i'))[1]);
+};
+
+TM.message = function(message, type){
+    type    = type || 'WARN';
+    message = '[UOL Tag Manager] ' + type + ': ' + message;
+    if (window.console) {
+        if (type == 'WARN'){
+            if (window.console.warn) {
+                console.warn(message);
+            } else {
+                console.log(message);
+            }
+        } else if (type == 'ERROR'){
+            if (window.console.error) {
+                console.error(message);
+            } else {
+                console.log(message);
+            }
+        } else {
+            console.log(message);
+        } 
+    };
+};
+
+TM.isBannedSite = function() {
+    var blacklistLength = TM.blacklist.length;
+    for(var i = 0; i < blacklistLength; i++) {
+        if(TM.currHref.match(TM.blacklist[i])) {
+            TM.message('A página [' + TM.currHref + '] não é permitida pelo sistema');
+            return true;
+        }
+    }
+    return false;
+};
